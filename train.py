@@ -28,7 +28,7 @@ def evaluation(raw_model, eval_model, loader, device):
             #forward pass
             preds = eval_model(data)
             raw_preds = raw_model(data)
-            #softmax comes with cross entropy loss for numerical stability in pytorch
+            #softmax comes with cross entropy loss for numerical stability in the pytorch
             loss = F.cross_entropy(preds, labels)
             sum_loss += loss.item()
             #get max predicton over axis one which means we take the max over the columns, returns maximum value in each row:

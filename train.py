@@ -76,6 +76,8 @@ def param_update(
 
     forward_func = model.forward
     stu_logits = forward_func(all_data)
+    stu_logits, features =  model.logits_with_feature(all_data)
+    print(features)
 
     # get prediction for labeled data
     labeled_preds = stu_logits[:labeled_data.shape[0]]
@@ -239,7 +241,6 @@ def main(cfg, logger):
     metric_meter = Meter()
     maximum_val_acc = 0
     logger.info("training")
-
     for i,(l_data, ul_data) in enumerate(zip(label_loader, unlabel_loader)):
 
         l_aug, labels = l_data

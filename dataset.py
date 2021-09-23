@@ -40,6 +40,7 @@ class LabeledDataset:
         image = torch.from_numpy(self.dataset["images"][idx]).float()
         image = image.permute(2, 0, 1).contiguous() / 255.
         label = int(self.dataset["labels"][idx])
+        print(idx,"heloooo")
         if self.transform is not None:
             image = self.transform(image)
         return image, label

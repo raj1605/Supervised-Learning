@@ -59,6 +59,8 @@ def get_dataloaders(root,data, n_labels, n_unlabels, n_valid, l_batch_size, ul_b
     validation_labels = train_set['labels'][:n_valid]
     validation_set = {'images': validation_images, 'labels': validation_labels}
     train_set = {'images': train_images, 'labels': train_labels}
+    
+    print((train_set['images'].shape))
 
     #adopted from DSL3: get validaton and test dataset which have only ID samples
     validation_set = dataset.split_test(cfg, validation_set, n_class=n_class)

@@ -34,7 +34,7 @@ def get_dataloaders(root,data, n_labels, n_unlabels, n_valid, l_batch_size, ul_b
     if data == "CIFAR10":
 
         train_set, test_set = dataset.load_cifar10(root)
-        print(train_set['labels'])
+        print(train_set['images'])
 
         #move class "plane" and "car" from label 0 and 1 to label 8 and 9 in train and test sets
         train_set['labels'] -= 2

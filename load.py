@@ -49,6 +49,7 @@ def get_dataloaders(root,data, n_labels, n_unlabels, n_valid, l_batch_size, ul_b
 
     #permute index of training set
     indices = rng.permutation(len(train_set['images']))
+    print(indices)
     train_set['images'] = train_set['images'][indices]
     train_set['labels'] = train_set['labels'][indices]
 

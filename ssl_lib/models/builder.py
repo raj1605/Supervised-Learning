@@ -1,6 +1,6 @@
 import numpy as np
 
-from .resnet import ResNet
+from .resnet2 import ResNet
 from .shakenet import ShakeNet
 from .cnn13 import CNN13
 

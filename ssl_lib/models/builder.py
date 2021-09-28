@@ -1,6 +1,8 @@
 import numpy as np
 
-from .resnet2 import ResNet
+from .resnet import ResNet
+from .resnet2 import WRN
+from .resnet3 import WideResNet
 from .shakenet import ShakeNet
 from .cnn13 import CNN13
 
@@ -9,7 +11,8 @@ from .cnn13 import CNN13
 def gen_model(name, num_classes, img_size):
     scale =  int(np.ceil(np.log2(img_size)))
     if name == "wrn":
-        return ResNet(num_classes, 32, scale, 4)
+        return WideResNet(num_classes,depth=28,widen_factor=2)
+        #return ResNet(num_classes, 32, scale, 4)
     elif name == "shake":
         return ShakeNet(num_classes, 32, scale, 4)
     elif name == "cnn13":

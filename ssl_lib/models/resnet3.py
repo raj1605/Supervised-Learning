@@ -10,6 +10,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from .utils import leaky_relu, conv3x3, BatchNorm2d, param_init, BaseModel
+
 
 class BasicBlock(nn.Module):
     def __init__(self, in_planes, out_planes, stride, dropRate=0.0, activate_before_residual=False):
@@ -50,7 +52,7 @@ class NetworkBlock(nn.Module):
     def forward(self, x):
         return self.layer(x)
 
-class WideResNet(nn.Module):
+class WideResNet(BaseModel):
     def __init__(self, num_classes, depth=28, widen_factor=2, dropRate=0.0):
         super(WideResNet, self).__init__()
         nChannels = [16, 16*widen_factor, 32*widen_factor, 64*widen_factor]

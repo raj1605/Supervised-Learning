@@ -33,6 +33,7 @@ class PseudoLabel(ConsistencyRegularization):
         )
 
     def __call__(self, stu_preds, tea_logits, *args, **kwargs):
+        print("INside __ call __ method **************************")
         hard_label, mask = make_pseudo_label(tea_logits, self.threshold)
         return stu_preds, hard_label, mask
 

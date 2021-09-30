@@ -72,7 +72,7 @@ class WideResNet(BaseModel):
         self.bn1 = nn.BatchNorm2d(nChannels[3], momentum=0.001)
         self.relu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
         self.fc = nn.Linear(nChannels[3], num_classes)
-        print(self.fc.shape)
+        print(type(self.fc))
         self.feature_extractor = self.fc
         self.nChannels = nChannels[3]
 

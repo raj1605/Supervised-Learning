@@ -11,6 +11,7 @@ class BaseModel(nn.Module):
 
     def logits_with_feature(self, x):
         f = self.feature_extractor(x)
+        print(type(x))
         f=f.mean((2, 3))
         c = self.classifier(f)
         return c, f

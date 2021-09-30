@@ -76,7 +76,8 @@ def param_update(
 
     forward_func = model.forward
     stu_logits = forward_func(all_data)
-    #stu_logits, features =  model.logits_with_feature(all_data)
+    stu_logits, features =  model.logits_with_feature(all_data)
+    print(features,'kdjksskdnsjds')
     
 
     # get prediction for labeled data
@@ -90,23 +91,28 @@ def param_update(
     if cfg.coef > 0:
 
         # calc consistency loss
-        model.update_batch_stats(False)
-# ssl_alg  return ConsistencyRegularization and ConsistencyRegularization reurns stu_preds, adjusted targets, mask for psuldo labeling
-        y, targets, mask = ssl_alg(
-            stu_preds= stu_unlabeled_weak_logits,
-            #if there is no teacher the tea_logit is the model(student) logits
-            tea_logits=stu_unlabeled_weak_logits.detach(),
-            #in the original code the ul_strong_data can be the same as ul_weak_data
-            #data=ul_strong_data,
-            data = ul_weak_data,
-            stu_forward=stu_logits,
-            #if there is no teacher model, the t_forward_func is the same as forward_func
-            tea_forward=stu_logits
-            )
-        model.update_batch_stats(True)
-        #returns the loss from for example CrossEntropy class which returns
-        #consistency is consistency type
-        L_consistency = consistency(y, targets, mask, weak_prediction=stu_unlabeled_weak_logits.softmax(1))
+        if(cfg.alg != 'meanTeacher'):
+            model.update_batch_stats(False)
+    # ssl_alg  return ConsistencyRegularization and ConsistencyRegularization reurns stu_preds, adjusted targets, mask for psuldo labeling
+            y, targets, mask = ssl_alg(
+                stu_preds= stu_unlabeled_weak_logits,
+                #if there is no teacher the tea_logit is the model(student) logits
+                tea_logits=stu_unlabeled_weak_logits.detach(),
+                #in the original code the ul_strong_data can be the same as ul_weak_data
+                #data=ul_strong_data,
+                data = ul_weak_data,
+                stu_forward=stu_logits,
+                #if there is no teacher model, the t_forward_func is the same as forward_func
+                tea_forward=stu_logits,
+                model = model
+                )
+            model.update_batch_stats(True)
+            #returns the loss from for example CrossEntropy class which returns
+            #consistency is consistency type
+            L_consistency = consistency(y, targets, mask, weak_prediction=stu_unlabeled_weak_logits.softmax(1))
+        else:
+            
+            model.update_batch_stats(False)
 
    #supervised learning
     else:
@@ -203,8 +209,10 @@ def main(cfg, logger):
     model = gen_model(cfg.arch, num_classes, img_size).to(device)
     # build teacher model
     if cfg.ema_teacher:
+        from .mean_teacher import MeanTeacher
         teacher_model = gen_model(cfg.arch, num_classes, img_size).to(device)
         teacher_model.load_state_dict(model.state_dict())
+        ssl_obj = MeanTeacher(teacher_model, cf.ema_teacher_factor)
     else:
         teacher_model = None
     # for evaluation

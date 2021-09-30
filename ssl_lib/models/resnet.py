@@ -55,21 +55,21 @@ class ResNet(BaseModel):
     """
     def __init__(self, num_classes, filters, scales, repeat, dropout=None, *args, **kwargs):
         super().__init__()
-        feature_extractor = [conv3x3(3, 16)]
+        feature_extractorr = [conv3x3(3, 16)]
         channels = 16
         for scale in range(scales):
-            feature_extractor.append(
+            feature_extractorr.append(
                 _Residual(channels, filters<<scale, 2 if scale else 1, activate_before_residual = (scale == 0))
             )
             channels = filters << scale
             for _ in range(repeat - 1):
-                feature_extractor.append(
+                feature_extractorr.append(
                     _Residual(channels, channels)
                 )
 
-        feature_extractor.append(BatchNorm2d(channels))
-        feature_extractor.append(leaky_relu())
-        self.feature_extractor = nn.Sequential(*feature_extractor)
+        feature_extractorr.append(BatchNorm2d(channels))
+        feature_extractorr.append(leaky_relu())
+        self.feature_extractorr = nn.Sequential(*feature_extractorr)
 
         classifier = []
         if dropout is not None:

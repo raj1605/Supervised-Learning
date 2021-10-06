@@ -70,7 +70,7 @@ class ResNet(BaseModel):
         feature_extractor.append(BatchNorm2d(channels))
         feature_extractor.append(leaky_relu())
         self.feature_extractor = nn.Sequential(*feature_extractor)
-
+        print(type(self.feature_extractor), " : Type in old REsnet", self.feature_extractor.shape, " : Length in old resnet")
         classifier = []
         if dropout is not None:
             classifier.append(nn.Dropout(dropout))

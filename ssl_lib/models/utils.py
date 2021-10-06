@@ -7,13 +7,12 @@ class BaseModel(nn.Module):
     def forward(self, x):
         print(x.shape, " Shape of x")
         f = self.feature_extractor(x)
-        print(f.shape, " Shape of f")
         #print(type(f), " : Type in new REsnet", f, " : Length in new resnet")
         f = f.mean((2, 3))
+        print(f.shape, " Shape of f")
         return self.classifier(f)
 
     def logits_with_feature(self, x):
-        print(type(x),x.shape)
         f = self.feature_extractor(x)
         f=f.mean((2, 3))
         c = self.classifier(f)

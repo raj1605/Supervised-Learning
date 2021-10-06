@@ -4,7 +4,8 @@ from .pseudo_label import PseudoLabel
 from .vat import VAT
 
 
-def gen_ssl_alg(name, cfg):
+
+def gen_ssl_alg(name, cfg, model = None):
     if name == "ict": # mixed target <-> mixed input
         return ICT(
             cfg.consis,
@@ -41,5 +42,8 @@ def gen_ssl_alg(name, cfg):
         )
     elif name == "supervised":
         pass
+    elif name == "meanTeacher":
+        from .mean_teacher import MeanTeacher
+        return MeanTeacher(model, cfg.wa_ema_factor)
     else:
         raise NotImplementedError

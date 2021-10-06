@@ -33,6 +33,7 @@ class _Residual(nn.Module):
         self.layer = nn.Sequential(*layer)
 
     def forward(self, x):
+        print('helooooo')
         x = self.pre_act(x)
         print("---------Inside forward ------------")
         return self.identity(x) + self.layer(x)

@@ -80,3 +80,6 @@ class ResNet(BaseModel):
         self.classifier = nn.Sequential(*classifier)
 
         param_init(self.modules())
+
+    def forward(self, x):
+        print("Inside Resnet's forward ------------------")

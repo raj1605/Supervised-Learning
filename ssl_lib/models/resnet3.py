@@ -102,4 +102,3 @@ class WideResNet(BaseModel):
         out = F.avg_pool2d(out, 8)
         out = out.view(-1, self.nChannels)
         return self.fc(out)
-    

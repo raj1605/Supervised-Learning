@@ -103,5 +103,5 @@ class WideResNet(BaseModel):
         out = out.view(-1, self.nChannels)
         return self.fc(out)
 
-    def logits_with_features(self, x):
+    def logits_with_feature(self, x):
         print("Inside WRN's logits-----------------------")

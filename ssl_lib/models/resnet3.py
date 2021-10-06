@@ -73,7 +73,7 @@ class WideResNet(BaseModel):
         feature_extractor.append(self.block1)
         feature_extractor.append(self.block2)
         feature_extractor.append(self.block3)
-        print(feature_ectractor.shape)
+        print(feature_extractor.shape," : Shape of feature_extractor in WRN")
         self.bn1 = nn.BatchNorm2d(nChannels[3], momentum=0.001)
         self.relu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
         self.fc = nn.Linear(nChannels[3], num_classes)

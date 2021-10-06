@@ -5,10 +5,9 @@ import torch.nn.functional as F
 
 class BaseModel(nn.Module):
     def forward(self, x):
-        print(type(x)," Type of x")
-        print(x, " Value of x")
         print(x.shape, " Shape of x")
         f = self.feature_extractor(x)
+        print(f.shape, " Shape of f")
         #print(type(f), " : Type in new REsnet", f, " : Length in new resnet")
         f = f.mean((2, 3))
         return self.classifier(f)

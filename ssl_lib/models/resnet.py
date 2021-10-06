@@ -34,6 +34,7 @@ class _Residual(nn.Module):
 
     def forward(self, x):
         x = self.pre_act(x)
+        print("---------Inside forward ------------")
         return self.identity(x) + self.layer(x)
 
 

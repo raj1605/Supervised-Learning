@@ -4,13 +4,13 @@ import torch.nn.functional as F
 
 
 class BaseModel(nn.Module):
-    # def forward(self, x):
-    #     print(x.shape, " Shape of x")
-    #     f = self.feature_extractor(x)
-    #     #print(type(f), " : Type in new REsnet", f, " : Length in new resnet")
-    #     f = f.mean((2, 3))
-    #     print(f.shape, " Shape of f")
-    #     return self.classifier(f)
+    def forward(self, x):
+        print(x.shape, " Shape of x")
+        f = self.feature_extractor(x)
+        #print(type(f), " : Type in new REsnet", f, " : Length in new resnet")
+        f = f.mean((2, 3))
+        print(f.shape, " Shape of f")
+        return self.classifier(f)
 
     def logits_with_feature(self, x):
         f = self.feature_extractor(x)

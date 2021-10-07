@@ -29,8 +29,9 @@ class _Residual(nn.Module):
             self.identity = nn.Conv2d(input_channels, output_channels, 1, stride, bias=False)
         else:
             self.identity = nn.Identity()
-
+        print('Before sequential')
         self.layer = nn.Sequential(*layer)
+        print('After sequential')
 
     def forward(self, x):
         print('helooooo')

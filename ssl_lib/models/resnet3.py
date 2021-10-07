@@ -69,15 +69,8 @@ class WideResNet(BaseModel):
         self.block2 = NetworkBlock(n, nChannels[1], nChannels[2], block, 2, dropRate)
         # 3rd block
         self.block3 = NetworkBlock(n, nChannels[2], nChannels[3], block, 2, dropRate)
-        # global average pooling and classifier
-        # feature_extractor = [conv3x3(3, 16)]
-        # feature_extractor.append(self.block1)
-        # feature_extractor.append(self.block2)
-        # feature_extractor.append(self.block3)
-        # print(feature_extractor.shape," : Shape of feature_extractor in WRN")
         self.bn1 = nn.BatchNorm2d(nChannels[3], momentum=0.001)
         self.relu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
-        self.features = self.relu
         self.fc = nn.Linear(nChannels[3], num_classes)
         self.nChannels = nChannels[3]
 
@@ -108,6 +101,7 @@ class WideResNet(BaseModel):
         out = self.block2(out)
         out = self.block3(out)
         out = self.relu(self.bn1(out))
+        self.features = out
         out = F.avg_pool2d(out, 8)
         out = out.view(-1, self.nChannels)
         print(self.features.shape," : Shape of features")

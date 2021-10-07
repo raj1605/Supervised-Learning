@@ -104,6 +104,7 @@ class WideResNet(BaseModel):
         self.features = out
         out = F.avg_pool2d(out, 8)
         out = out.view(-1, self.nChannels)
-        print(self.features.shape," : Shape of features")
-        print(out.shape, " : Shape of features")
+        print(self.features.shape," : Shape of features self.features.shape")
+        print(out.shape, " : Shape of features out.shape")
+        print(self.fc(out).shape, " : Shape of features fc(out).shape")
         return self.fc(out),self.features

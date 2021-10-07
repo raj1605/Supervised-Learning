@@ -77,9 +77,8 @@ class WideResNet(BaseModel):
         # print(feature_extractor.shape," : Shape of feature_extractor in WRN")
         self.bn1 = nn.BatchNorm2d(nChannels[3], momentum=0.001)
         self.relu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
+        self.features = self.relu
         self.fc = nn.Linear(nChannels[3], num_classes)
-        print(type(self.fc))
-        self.feature_extractor = self.fc
         self.nChannels = nChannels[3]
 
         for m in self.modules():
@@ -111,4 +110,6 @@ class WideResNet(BaseModel):
         out = self.relu(self.bn1(out))
         out = F.avg_pool2d(out, 8)
         out = out.view(-1, self.nChannels)
-        return self.fc(out),out
+        print(self.features.shape," : Shape of features")
+        print(out.shape, " : Shape of features")
+        return self.fc(out),self.features

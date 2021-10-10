@@ -71,11 +71,14 @@ def param_update(
     #measure the time of one iteration
     start_time = time.time()
 
+
     #concatenate all labeled data and unlabeled data
     all_data = torch.cat([labeled_data, ul_weak_data], 0)
 
     forward_func = model.forward
     stu_logits = forward_func(all_data)
+    model.logits_with_feature()
+    features = []
 
     # get prediction for labeled data
     labeled_preds = stu_logits[:labeled_data.shape[0]]
@@ -154,8 +157,7 @@ def param_update(
             "mask": mask.float().mean().item() if mask is not None else 1,
             "coef": coef,
             "sec/iter": (time.time() - start_time)
-
-    }
+    },features
 
 
 def main(cfg, logger):
@@ -240,18 +242,27 @@ def main(cfg, logger):
     maximum_val_acc = 0
     logger.info("training")
 
+    feature_vectors_mapping = {}
     for i,(l_data, ul_data) in enumerate(zip(label_loader, unlabel_loader)):
 
         l_aug, labels = l_data
         ul_w_aug, ul_s_aug, _ = ul_data
 
-        params = param_update(
+        params, features = param_update(
             cfg, i, model, teacher_model, optimizer, ssl_alg,
             consistency, l_aug.to(device), ul_w_aug.to(device),
             ul_s_aug.to(device), labels.to(device),
             average_model
         )
 
+        batchSize = len(labels)
+        for j in range(batchSize):
+            labelIdx = labels[j].item()
+            if(labelIdx in feature_vectors_mapping.keys()):
+                feature_vectors_mapping[labelIdx][0] += features
+                feature_vectors_mapping[labelIdx][1] += 1
+            else:
+                feature_vectors_mapping[labelIdx] = [features,1]
             # moving average for reporting losses and accuracy
         metric_meter.add(params, ignores=["coef"])
 

@@ -16,7 +16,7 @@ def get_args():
     parser.add_argument('--n_labels', type=int, default=2400)
     parser.add_argument('--n_unlabels', type=int, default=20000)
     parser.add_argument('--n_valid', type=int, default=5000)
-    parser.add_argument('--n_class',  help="number of in distribution (ID) classes", type=int, default=10)
+    parser.add_argument('--n_class',  help="number of in distribution (ID) classes", type=int, default=6)
     parser.add_argument('--tot_class', help="number of all the classes available in dataset", type=int, default=10)
 
     #the percentage of the samples in unlabeled data that are OODs.

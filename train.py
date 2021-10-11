@@ -15,6 +15,11 @@ from ssl_lib.misc.meter import Meter
 from ssl_lib.param_scheduler import scheduler
 from ssl_lib.models import utils as model_utils
 
+def average_features(feature_vectors_mapping):
+    featureVector = []
+    for i in range(cfg.n_class):
+        featureVector.append(feature_vectors_mapping[i][0] / feature_vectors_mapping[i][1])
+    return(featureVector)
 
 
 def evaluation(raw_model, eval_model, loader, device):
@@ -265,6 +270,7 @@ def main(cfg, logger):
                 feature_vectors_mapping[labelIdx] = [features,1]
             # moving average for reporting losses and accuracy
         metric_meter.add(params, ignores=["coef"])
+        #Use this function call to get the average features across classes at any instance -> average_features(feature_vectors_mapping)
 
             # display losses every cfg.disp iterations
         if ((i+1) % cfg.disp) == 0:

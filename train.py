@@ -82,8 +82,7 @@ def param_update(
 
     forward_func = model.forward
     stu_logits = forward_func(all_data)
-    model.logits_with_feature()
-    features = []
+    features = model.logits_with_feature()
 
     # get prediction for labeled data
     labeled_preds = stu_logits[:labeled_data.shape[0]]
@@ -247,12 +246,12 @@ def main(cfg, logger):
     maximum_val_acc = 0
     logger.info("training")
 
-    feature_vectors_mapping = {}
     for i,(l_data, ul_data) in enumerate(zip(label_loader, unlabel_loader)):
 
+        feature_vectors_mapping = {}
         l_aug, labels = l_data
         ul_w_aug, ul_s_aug, _ = ul_data
-
+        #print(ul_w_aug.shape,ul_s_aug.shape)
         params, features = param_update(
             cfg, i, model, teacher_model, optimizer, ssl_alg,
             consistency, l_aug.to(device), ul_w_aug.to(device),
@@ -271,6 +270,15 @@ def main(cfg, logger):
             # moving average for reporting losses and accuracy
         metric_meter.add(params, ignores=["coef"])
         #Use this function call to get the average features across classes at any instance -> average_features(feature_vectors_mapping)
+        anchor_features = average_features(feature_vectors_mapping)
+        cos_sim_ul = []
+        for j in range(batchSize):
+            cos_sim = 2
+            for key in anchor_features.keys():
+                temp = F.cosine_similarity(key,ul_w_aug[j])
+                if(temp<cos_sim):
+                    cos_sim = temp
+            cos_sim_ul.append(cos_sim)
 
             # display losses every cfg.disp iterations
         if ((i+1) % cfg.disp) == 0:

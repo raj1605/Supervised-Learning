@@ -1,5 +1,6 @@
 import  torch
 
+from scipy import spatial
 import load
 import time
 import torch.nn.functional as F
@@ -15,9 +16,9 @@ from ssl_lib.misc.meter import Meter
 from ssl_lib.param_scheduler import scheduler
 from ssl_lib.models import utils as model_utils
 
-def average_features(feature_vectors_mapping):
+def average_features(feature_vectors_mapping, n_class):
     featureVector = []
-    for i in range(cfg.n_class):
+    for i in feature_vectors_mapping.keys():
         featureVector.append(feature_vectors_mapping[i][0] / feature_vectors_mapping[i][1])
     return(featureVector)
 
@@ -70,7 +71,8 @@ def param_update(
     ul_weak_data,
     ul_strong_data,
     labels,
-    average_model
+    average_model,
+    warmup_number
 ):
 
     #measure the time of one iteration
@@ -78,12 +80,14 @@ def param_update(
 
 
     #concatenate all labeled data and unlabeled data
-    all_data = torch.cat([labeled_data, ul_weak_data], 0)
+    if(cur_iteration < warmup_number):
+        all_data = labeled_data
+    else:
+        all_data = torch.cat([labeled_data, ul_weak_data], 0)
 
     forward_func = model.forward
     stu_logits = forward_func(all_data)
     features = model.logits_with_feature()
-
     # get prediction for labeled data
     labeled_preds = stu_logits[:labeled_data.shape[0]]
 
@@ -92,7 +96,7 @@ def param_update(
 
     L_supervised = F.cross_entropy(labeled_preds, labels)
 
-    if cfg.coef > 0:
+    if(cfg.coef > 0 and cur_iteration > warmup_number):
 
         # calc consistency loss
         model.update_batch_stats(False)
@@ -144,7 +148,7 @@ def param_update(
     optimizer.step()
 
     # update evaluation model's parameters by exponential moving average
-    if cfg.weight_average:
+    if cfg.ema:
         model_utils.ema_update(
             average_model, model, cfg.wa_ema_factor,
             cfg.weight_decay * cur_lr if cfg.wa_apply_wd else None)
@@ -206,13 +210,15 @@ def main(cfg, logger):
     # build student model
     model = gen_model(cfg.arch, num_classes, img_size).to(device)
     # build teacher model
+    # if(cfg.ema):
+    #     ssl_alg.moving_average(model.parameters())
     if cfg.ema_teacher:
         teacher_model = gen_model(cfg.arch, num_classes, img_size).to(device)
         teacher_model.load_state_dict(model.state_dict())
     else:
         teacher_model = None
     # for evaluation
-    if cfg.weight_average:
+    if cfg.ema:
         average_model = gen_model(cfg.arch, num_classes, img_size).to(device)
         average_model.load_state_dict(model.state_dict())
     else:
@@ -251,34 +257,43 @@ def main(cfg, logger):
         feature_vectors_mapping = {}
         l_aug, labels = l_data
         ul_w_aug, ul_s_aug, _ = ul_data
-        #print(ul_w_aug.shape,ul_s_aug.shape)
         params, features = param_update(
             cfg, i, model, teacher_model, optimizer, ssl_alg,
             consistency, l_aug.to(device), ul_w_aug.to(device),
             ul_s_aug.to(device), labels.to(device),
-            average_model
+            average_model, cfg.warmup_iter
         )
+        if(i>cfg.warmup_iter):
+            batchSize = len(labels)
+            for j in range(batchSize):
+                labelIdx = labels[j].item()
+                if(labelIdx in feature_vectors_mapping.keys()):
+                    feature_vectors_mapping[labelIdx][0] += features[j]
+                    feature_vectors_mapping[labelIdx][1] += 1
+                else:
+                    feature_vectors_mapping[labelIdx] = [features[j],1]
+                # moving average for reporting losses and accuracy
+            metric_meter.add(params, ignores=["coef"])
+            #Use this function call to get the average features across classes at any instance -> (feature_vectors_mapping)
+            anchor_features = average_features(feature_vectors_mapping, cfg.n_class)
+            cos_sim_ul = []
+            for j in range(cfg.l_batch_size,cfg.l_batch_size+cfg.ul_batch_size):
+                cos_sim = 2
+                for anchor in anchor_features:
+                    temp = F.cosine_similarity(torch.flatten(anchor),torch.flatten(features[j]), dim = 0)
+                    if(temp<cos_sim):
+                        cos_sim = temp
+                cos_sim_ul.append(cos_sim)
+            sd = torch.std(torch.tensor(cos_sim_ul),unbiased =True).item()
+            mean = 0
+            ood_indices = []
+            for j in range(len(cos_sim_ul)):
+                if(cos_sim_ul[j]<mean-2*sd):
+                    ood_indices.append(j)
 
-        batchSize = len(labels)
-        for j in range(batchSize):
-            labelIdx = labels[j].item()
-            if(labelIdx in feature_vectors_mapping.keys()):
-                feature_vectors_mapping[labelIdx][0] += features
-                feature_vectors_mapping[labelIdx][1] += 1
-            else:
-                feature_vectors_mapping[labelIdx] = [features,1]
-            # moving average for reporting losses and accuracy
-        metric_meter.add(params, ignores=["coef"])
-        #Use this function call to get the average features across classes at any instance -> average_features(feature_vectors_mapping)
-        anchor_features = average_features(feature_vectors_mapping)
-        cos_sim_ul = []
-        for j in range(batchSize):
-            cos_sim = 2
-            for key in anchor_features.keys():
-                temp = F.cosine_similarity(key,ul_w_aug[j])
-                if(temp<cos_sim):
-                    cos_sim = temp
-            cos_sim_ul.append(cos_sim)
+            # To remove the OOD dataset from the unlabeled
+            for j in range(len(ood_indices)-1,-1,-1):
+                ul_w_aug = torch.cat([ul_w_aug[:ood_indices[j]],ul_w_aug[ood_indices[j]+1:]],0)
 
             # display losses every cfg.disp iterations
         if ((i+1) % cfg.disp) == 0:

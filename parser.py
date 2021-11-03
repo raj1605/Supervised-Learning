@@ -18,6 +18,7 @@ def get_args():
     parser.add_argument('--n_valid', type=int, default=5000)
     parser.add_argument('--n_class',  help="number of in distribution (ID) classes", type=int, default=6)
     parser.add_argument('--tot_class', help="number of all the classes available in dataset", type=int, default=10)
+    parser.add_argument('--warmup_iter', help="Number representing the warmup iterations using labelled datapoints", type=int, default=4000)
 
     #the percentage of the samples in unlabeled data that are OODs.
     parser.add_argument('--ratio', type=float, default=0)
@@ -55,7 +56,6 @@ def get_args():
     parser.add_argument("--lr_decay_rate", default=0.2, type=float, help="decay rate for step lr decay")
     parser.add_argument("--only_validation", action="store_true",
                     help="only training and validation for hyperparameter tuning")
-    parser.add_argument("--warmup_iter", default=0, type=int, help="wnumber of armup iteration for SSL loss coefficient")
     parser.add_argument("--tsa", action="store_true", help="use training signal annealing proposed by UDA")
     parser.add_argument("--tsa_schedule", default="linear", choices=['linear', 'exp', 'log'], type=str, help="tsa schedule")
 
@@ -66,7 +66,8 @@ def get_args():
                     help='use zca whitening')
 
 # SSL common config
-    parser.add_argument("--coef", default=0, type=float, help="coefficient for consistency loss")
+    parser.add_argument("--coef", default=1, type=float, help="coefficient for consistency loss")
+    parser.add_argument("--ema", action="store_true", help="Stochastic Moving average")
     parser.add_argument("--ema_teacher", action="store_true", help="use mean teacher")
     parser.add_argument( "-consis", default="ce", choices=['ce', 'ms'], type=str, help="consistency type, cross-entropy, mean squre")
     parser.add_argument("--entropy_minimization", "-em", default=0, type=float,
